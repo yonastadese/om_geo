@@ -1,0 +1,296 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [125.6, 10.1]
+  },
+  "properties": {
+    "name": "Dinagat Islands"
+  }
+}
+
+
+POST /sampleshape/_doc
+{
+  "location" : {
+    "type" : "polygon",
+    "coordinates" : [
+      [ [14.4314975,50.06587639], [ 14.43306389,50.074225], [14.44611472,50.07617722], [ 14.4292075, 50.06631944],[14.4314975,50.06587639] ]
+    ]
+  }
+}
+
+PUT /school_geo
+{
+  "mappings": {
+    "properties": {
+      "location": {
+        "type": "geo_shape",
+        "strategy": "recursive"
+      }
+    }
+  }
+}
+POST /school_en/_doc/14
+{
+  "location" : {
+    "type" : "envelope",
+    "coordinates" : [[50.07371,  20.43467],[55.07371,   14.43467]]
+  }
+}
+
+
+PUT /medical_geo
+{
+  "mappings": {
+    "properties": {
+      "location": {
+        "type": "geo_shape"
+      }
+    }
+  }
+}
+
+POST /geo_city_points/_doc/18
+{
+  "location" : {
+    "type" : "circle",
+    "coordinates" : [50.07419, 14.4343],
+    "radius" : "100km"
+  }
+}
+
+GET school_en/doc/_search
+{
+   "query": {
+    "bool": {
+      "filter": {
+        "envelope": {
+          "location": {
+            "indexed_shape": {
+              "index": "geo_city_points",
+              "type": "_doc",
+              "id": "12",
+              "path": "location"
+            },
+            "relation": "within"
+          }
+        }
+      
+        
+      }
+    }
+  }
+}
+
+GET new_city_point/_search
+{
+  "size": 50, 
+  "query": {
+    "bool": {
+     "should": [
+       
+        { "match": { "locid": { "query": "city_medical"}}}
+      ],
+      
+      "filter": {
+        "geo_shape": {
+          "location": {
+            "shape": {
+              "type": "circle",
+              "unit":"km",
+              "coordinates" : [14.43650139,
+              50.07231639],
+                "radius" : "5km"
+                
+            }, 
+            "relation": "within"
+            
+          }
+        
+        }
+      }
+    }
+  }
+}
+
+GET geo_city_point/_search
+{
+  "query": {
+      "script" : {
+    "source" : "decayGeoExp(params.origin, params.scale, params.offset, params.decay, doc['location'].value)",
+    "params": {
+        "origin": "50.07231639,14.43650139",
+        "scale": "200km",
+        "offset": "0km",
+        "decay" : 0.2
+    }
+}
+      
+    }
+  }
+
+
+GET geo_city_school,geo_city_point/_search
+{
+  "query": {
+    "bool": {
+      "must": {
+        "match_all": {}
+      },
+      "filter": {
+        "geo_bounding_box": {
+          "pin.location": {
+            "top_left": [ 50.07472389, 14.32618833
+          ],
+            "bottom_right": [ 50.00072389, 14.02618833
+          ]
+          }
+        }
+      }
+    }
+  }
+}
+
+GET new_city_point/_search
+    {
+     "query": {
+     "filtered": {
+     "filter": {
+     "bool": {
+     "must": [
+               {
+         "geo_bounding_box": {
+         "type": "indexed",
+         "_cache": true,
+         "location": {
+         "top_left": [ 50.07472389, 14.32618833
+          ],
+            "bottom_right": [ 50.00072389, 14.02618833
+          ]
+             }
+             }
+             },
+             {
+                 "geo_distance": {
+                 "distance": "1km",
+                 "location": {
+                 "lat": 50.07231639,
+                 "lon": -73.988
+                 }
+                 }
+     }
+     ]
+     }
+     }
+     }
+     }
+}
+GET new_city_point/_search
+{
+  "query": {
+    "geo_shape": {
+      "location": {
+        "relation": "within", 
+        "shape": {
+          "type": "polygon",
+          "coordinates":  [[
+          [
+            14.416723251342773,
+            50.07994694903953
+          ],
+          [
+            14.426250457763674,
+            50.08991523064699
+          ],
+          [
+            14.442558288574219,
+            50.09112670368736
+          ],
+          [
+            14.449596405029299,
+            50.089750027405
+          ],
+          [
+            14.458351135253906,
+            50.08187467898333
+          ],
+          [
+            14.461526870727539,
+            50.07532008089765
+          ],
+          [
+            14.46023941040039,
+            50.07085803516378
+          ],
+          [
+            14.45320129394531,
+            50.06799329314162
+          ],
+          [
+            14.43105697631836,
+            50.06639557422427
+          ],
+          [
+            14.418869018554688,
+            50.06755254841142
+          ],
+          [
+             14.416723251342773,
+            50.07994694903953
+          ]]
+        ]
+        }
+      }
+    }
+  }
+}
+GET _cat/indices?format=JSON
+
+GET new_city_point/_search/
+
+GET new_city_point/_search
+{
+  "query": {
+   "script_feilds":{
+     "script":{
+     "lang":"painless",
+     "source": "params._source.name"
+     
+      
+     
+       
+     }
+   }
+  }
+   
+}
+GET new_city_point/_search
+{
+ "query": {
+   "match_all": {}
+ },
+ "sort": {
+   "_script": {
+     "type": "string",
+     "order": "asc",
+     "script": {
+       "lang": "painless",
+       "source": "_source"
+     }
+   }
+ }
+}
+
+GET n_city_point/_search
+{
+  "script_fields": {
+    "my_doubled_field": {
+      "script": { 
+        "lang": "painless", 
+        "source": "SCRIPT"
+        
+      }
+    }
+  }
+}

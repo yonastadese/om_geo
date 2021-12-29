@@ -1,0 +1,174 @@
+# using geo shape and circle 
+
+GET new_city_point/_search
+{
+  "size": 50, 
+  "query": {
+    "bool": {
+     "should": [
+       
+          { "match": { "locid": { "query": "city_point"}}}
+      ],
+      
+      "filter": {
+        "geo_shape": {
+          "location": {
+            "shape": {
+              "type": "circle",
+              "unit":"km",
+              "coordinates" : [14.42618833,
+          50.07472389],
+                "radius" : "5km"
+                
+            }, 
+            "relation": "within"
+            
+          }
+        
+        }
+      }
+    }
+  }
+}
+
+
+
+#using geo_bounding_box
+
+GET geo_city_point/_search
+{
+  "query": {
+    "bool": {
+      "must": {
+        "match_all": {}
+      },
+      "filter": {
+        "geo_bounding_box": {
+          "location": {
+            "top_left": [14.40831  ,50.08598 
+          ],
+            "bottom_right": [14.45518 , 50.0615
+          ]
+          }
+        }
+      }
+    }
+  }
+}
+
+
+# using polygon 
+
+GET new_city_point/_search
+{
+ "query": {
+    "bool": {
+     "should": [
+       
+        { "match": { "locid": { "query": "city_medical"}
+          
+        }
+          
+        }
+      ],
+      
+      "filter": {
+      "geo_shape": {
+      "location": {
+        "relation": "intersects", 
+        "shape": {
+          "type": "polygon",
+          "coordinates":  [[
+          [
+            14.416723251342773,
+            50.07994694903953
+          ],
+          [
+            14.426250457763674,
+            50.08991523064699
+          ],
+          [
+            14.442558288574219,
+            50.09112670368736
+          ],
+          [
+            14.449596405029299,
+            50.089750027405
+          ],
+          [
+            14.458351135253906,
+            50.08187467898333
+          ],
+          [
+            14.461526870727539,
+            50.07532008089765
+          ],
+          [
+            14.46023941040039,
+            50.07085803516378
+          ],
+          [
+            14.45320129394531,
+            50.06799329314162
+          ],
+          [
+            14.43105697631836,
+            50.06639557422427
+          ],
+          [
+            14.418869018554688,
+            50.06755254841142
+          ],
+          [
+             14.416723251342773,
+            50.07994694903953
+          ]]
+        ]
+        }
+      }
+    }
+      }
+      
+    }
+  }
+}
+
+# using sort by distance 
+
+GET geo_city_point/_search
+    {
+     "query": {
+     "bool": {
+     "must": [
+               {
+           "geo_bounding_box": {
+            "location": {
+              "top_left": [14.40831  ,50.08598 
+            ],
+              "bottom_right": [14.45518 , 50.0615
+            ]
+            }
+               }
+               }
+           ]
+           }
+           },
+              "sort": [
+                {
+                  "_geo_distance": {
+                    "location" : [
+                        14.42618833,
+                        50.07472389
+                      ],
+                    "order":"asc",
+                    "unit": "km", 
+                    "distance_type": "arc" 
+                  }
+                }
+              ]
+              
+}
+
+
+
+
